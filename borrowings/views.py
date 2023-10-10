@@ -2,12 +2,17 @@ from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
+from datetime import datetime
 from .serializers import (
     BorrowingSerializer,
     BorrowingDetailSerializer,
     CreateBorrowingSerializer,
-    AdminCreateBorrowingSerializer
+    AdminCreateBorrowingSerializer,
+    ReturnBorrowingSerializer
 )
 from .models import Borrowing
 
@@ -49,3 +54,24 @@ class BorrowingViewSet(
 
         return BorrowingDetailSerializer
 
+    @action(detail=False, methods=["POST"])
+    def return_borrowing(self, request, pk):
+        serializer_class = ReturnBorrowingSerializer
+        serializer = serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            borrowing = Borrowing.objects.get(id=pk)
+            book = borrowing.book
+
+            if borrowing.actual_return_date is not None:
+                raise ValidationError("borrowing already inactive")
+
+            borrowing.actual_return_date = datetime.now()
+            borrowing.save()
+
+            book.inventory += 1
+            book.save()
+
+            return Response({"message": "Borrowing returned successfully"})
+
+        return Response(serializer.errors, status=400)
