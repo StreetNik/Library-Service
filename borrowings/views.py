@@ -1,18 +1,24 @@
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
-from Library_API.permissions import IsSuperuserOrReadOnly
-from .serializers import BorrowingSerializer, BorrowingDetailSerializer
+from .serializers import (
+    BorrowingSerializer,
+    BorrowingDetailSerializer,
+    CreateBorrowingSerializer,
+    AdminCreateBorrowingSerializer
+)
 from .models import Borrowing
 
 
 class BorrowingViewSet(
     mixins.ListModelMixin,
+    mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
-    permission_classes = (IsSuperuserOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
 
     def get_queryset(self):
@@ -34,8 +40,12 @@ class BorrowingViewSet(
 
     def get_serializer_class(self):
         print(self.action)
-        if self.action in ["list", "create"]:
+        if self.action == "list":
             return BorrowingSerializer
+        if self.action == "create":
+            if self.request.user.is_superuser:
+                return AdminCreateBorrowingSerializer
+            return CreateBorrowingSerializer
 
         return BorrowingDetailSerializer
 
