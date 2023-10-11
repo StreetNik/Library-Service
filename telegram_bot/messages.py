@@ -15,6 +15,6 @@ def borrowing_creation(borrowing: Borrowing) -> None:
               f"User: {borrowing.user_id}, {borrowing.user.first_name} {borrowing.user.last_name} \n" \
               f"Book: {borrowing.book.title} \n" \
               f"Daily fee: {borrowing.book.daily_fee}$ \n" \
-              f"Dates: {borrowing.borrow_date} - {borrowing.expected_return_date}, " \
+              f"Expected return period: {borrowing.borrow_date} - {borrowing.expected_return_date}" \
 
     requests.get(message_url.format(message))

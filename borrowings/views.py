@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from telegram_bot.script import borrowing_creation
+from telegram_bot.messages import borrowing_creation
 
 from datetime import datetime
 from .serializers import (
