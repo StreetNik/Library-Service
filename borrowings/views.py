@@ -5,14 +5,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
 from datetime import datetime
 from .serializers import (
     BorrowingSerializer,
     BorrowingDetailSerializer,
     CreateBorrowingSerializer,
-    AdminCreateBorrowingSerializer,
-    ReturnBorrowingSerializer
+    AdminCreateBorrowingSerializer
 )
 from .models import Borrowing
 
@@ -56,22 +56,19 @@ class BorrowingViewSet(
 
     @action(detail=False, methods=["POST"])
     def return_borrowing(self, request, pk):
-        serializer_class = ReturnBorrowingSerializer
-        serializer = serializer_class(data=request.data)
+        borrowing = get_object_or_404(Borrowing, pk=pk)
+        book = borrowing.book
 
-        if serializer.is_valid():
-            borrowing = Borrowing.objects.get(id=pk)
-            book = borrowing.book
+        if not request.user.is_superuser and request.user != borrowing.user:
+            raise ValidationError("You do not have permission to return this borrowing.")
 
-            if borrowing.actual_return_date is not None:
-                raise ValidationError("borrowing already inactive")
+        if borrowing.actual_return_date is not None:
+            raise ValidationError("borrowing already inactive")
 
-            borrowing.actual_return_date = datetime.now()
-            borrowing.save()
+        borrowing.actual_return_date = datetime.now()
+        borrowing.save()
 
-            book.inventory += 1
-            book.save()
+        book.inventory += 1
+        book.save()
 
-            return Response({"message": "Borrowing returned successfully"})
-
-        return Response(serializer.errors, status=400)
+        return Response({"message": "Borrowing returned successfully"})
