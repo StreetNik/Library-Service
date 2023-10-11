@@ -7,6 +7,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
+from telegram_bot.script import borrowing_creation
+
 from datetime import datetime
 from .serializers import (
     BorrowingSerializer,
@@ -25,6 +27,16 @@ class BorrowingViewSet(
 ):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        pk = response.data.get("id")
+        print(pk)
+        borrowing = Borrowing.objects.get(id=pk)
+
+        borrowing_creation(borrowing)
+
+        return response
 
     def get_queryset(self):
         queryset = Borrowing.objects.all()
