@@ -1,10 +1,7 @@
 from django.db import models
 
 
-COVER_CHOICES = (
-    ("HARD", "Hardcover"),
-    ("SOFT", "Softcover")
-)
+COVER_CHOICES = (("HARD", "Hardcover"), ("SOFT", "Softcover"))
 
 
 class Book(models.Model):

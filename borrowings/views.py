@@ -7,14 +7,14 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from telegram_bot.messages import borrowing_creation
+from telegram_bot.messages import borrowing_creation_notification
 
 from datetime import datetime
 from .serializers import (
     BorrowingSerializer,
     BorrowingDetailSerializer,
     CreateBorrowingSerializer,
-    AdminCreateBorrowingSerializer
+    AdminCreateBorrowingSerializer,
 )
 from .models import Borrowing
 
@@ -23,7 +23,7 @@ class BorrowingViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    GenericViewSet
+    GenericViewSet,
 ):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
@@ -34,7 +34,7 @@ class BorrowingViewSet(
         print(pk)
         borrowing = Borrowing.objects.get(id=pk)
 
-        borrowing_creation(borrowing)
+        borrowing_creation_notification(borrowing)
 
         return response
 
@@ -72,7 +72,9 @@ class BorrowingViewSet(
         book = borrowing.book
 
         if not request.user.is_superuser and request.user != borrowing.user:
-            raise ValidationError("You do not have permission to return this borrowing.")
+            raise ValidationError(
+                "You do not have permission to return this borrowing."
+            )
 
         if borrowing.actual_return_date is not None:
             raise ValidationError("borrowing already inactive")

@@ -5,12 +5,15 @@ from books.serializers import BookSerializer
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Borrowing
         fields = [
-            "id", "borrow_date", "expected_return_date",
-            "actual_return_date", "book", "user"
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date",
+            "book",
+            "user",
         ]
 
 
@@ -19,12 +22,15 @@ class BorrowingDetailSerializer(BorrowingSerializer):
 
 
 class CreateBorrowingSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Borrowing
         fields = [
-            "id", "borrow_date", "expected_return_date",
-            "actual_return_date", "book", "user"
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date",
+            "book",
+            "user",
         ]
         read_only_fields = ["user"]
 
@@ -41,21 +47,22 @@ class CreateBorrowingSerializer(serializers.ModelSerializer):
         book.save()
 
         borrowing = Borrowing.objects.create(
-            book=book,
-            **validated_data,
-            user=self.context["request"].user
+            book=book, **validated_data, user=self.context["request"].user
         )
 
         return borrowing
 
 
 class AdminCreateBorrowingSerializer(CreateBorrowingSerializer):
-
     class Meta:
         model = Borrowing
         fields = [
-            "id", "borrow_date", "expected_return_date",
-            "actual_return_date", "book", "user"
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date",
+            "book",
+            "user",
         ]
 
     def create(self, validated_data):
@@ -63,9 +70,6 @@ class AdminCreateBorrowingSerializer(CreateBorrowingSerializer):
         book.inventory -= 1
         book.save()
 
-        borrowing = Borrowing.objects.create(
-            book=book,
-            **validated_data
-        )
+        borrowing = Borrowing.objects.create(book=book, **validated_data)
 
         return borrowing
