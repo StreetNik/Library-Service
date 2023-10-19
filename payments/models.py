@@ -8,8 +8,8 @@ PAYMENT_TYPE_CHOICES = (("PAYMENT", "Payment"), ("FINE", "Fine"))
 
 
 class Payment(models.Model):
-    status = models.CharField(choices=PAYMENT_STATUS_CHOICES, default=1, max_length=144)
-    type = models.CharField(choices=PAYMENT_TYPE_CHOICES, default=1, max_length=144)
+    status = models.CharField(choices=PAYMENT_STATUS_CHOICES, default="PENDING", max_length=144)
+    type = models.CharField(choices=PAYMENT_TYPE_CHOICES, default="PAYMENT", max_length=144)
     borrowing = models.ForeignKey(Borrowing, on_delete=models.CASCADE)
     session_url = models.URLField()
     session_id = models.CharField(max_length=240)
