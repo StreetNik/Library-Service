@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -140,5 +141,15 @@ REST_FRAMEWORK = {
     )
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=5),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE",
+}
+
 CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
 CELERY_TIMEZONE = os.environ["TIME_ZONE"]
+
+STRIPE_PUBLIC_KEY = os.environ["STRIPE_PUBLIC_KEY"]
+STRIPE_SECRET_KEY = os.environ["STRIPE_SECRET_KEY"]
+STRIPE_WEBHOOK_SECRET = os.environ["STRIPE_WEBHOOK_SECRET"]
