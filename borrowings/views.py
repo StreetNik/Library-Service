@@ -17,6 +17,7 @@ from .serializers import (
     AdminCreateBorrowingSerializer,
 )
 from .models import Borrowing
+from payments.utils import create_new_payment
 
 
 class BorrowingViewSet(
@@ -35,6 +36,7 @@ class BorrowingViewSet(
         borrowing = Borrowing.objects.get(id=pk)
 
         borrowing_creation_notification(borrowing)
+        create_new_payment(borrowing)
 
         return response
 
