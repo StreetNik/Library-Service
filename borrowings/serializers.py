@@ -1,10 +1,12 @@
 from rest_framework import serializers
-
 from .models import Borrowing
 from books.serializers import BookSerializer
+from payments.serializers import PaymentSerializer
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
+    payments = PaymentSerializer(many=True)
+
     class Meta:
         model = Borrowing
         fields = [
@@ -12,6 +14,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "borrow_date",
             "expected_return_date",
             "actual_return_date",
+            "payments",
             "book",
             "user",
         ]
