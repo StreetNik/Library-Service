@@ -32,7 +32,6 @@ class BorrowingViewSet(
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         pk = response.data.get("id")
-        print(pk)
         borrowing = Borrowing.objects.get(id=pk)
 
         borrowing_creation_notification(borrowing)
@@ -58,7 +57,6 @@ class BorrowingViewSet(
         return queryset
 
     def get_serializer_class(self):
-        print(self.action)
         if self.action == "list":
             return BorrowingSerializer
         if self.action == "create":

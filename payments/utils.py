@@ -9,7 +9,7 @@ from .models import Payment
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-def create_new_checkout_session(borrowing:Borrowing, price: Decimal) -> stripe.checkout.Session:
+def create_new_checkout_session(borrowing: Borrowing, price: Decimal) -> stripe.checkout.Session:
     checkout_session = stripe.checkout.Session.create(
         line_items=[
             {
@@ -23,9 +23,12 @@ def create_new_checkout_session(borrowing:Borrowing, price: Decimal) -> stripe.c
                 'quantity': 1,
             },
         ],
-        mode='payment',
-        success_url='http://127.0.0.1:8000/api/payments/',
-        cancel_url='http://127.0.0.1:8000/api/payments/',
+        metadata={
+            "book_id": borrowing.book.id
+        },
+        mode="payment",
+        success_url="http://127.0.0.1:8000/api/payments/paid_successfully" + "/?session_id={CHECKOUT_SESSION_ID}",
+        cancel_url="http://127.0.0.1:8000/api/payments/cancel" + "?session_id={CHECKOUT_SESSION_ID}",
     )
 
     return checkout_session

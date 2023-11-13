@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Payment
+from datetime import datetime, timedelta
 from users.serializers import UserProfileSerializer
 from books.serializers import BookSerializer
 
@@ -37,3 +38,16 @@ class PaymentDetailSerializer(PaymentSerializer):
             "book",
             "user",
         ]
+
+
+class OrderSuccessSerializer(serializers.Serializer):
+    customer_email = serializers.EmailField()
+    amount = serializers.DecimalField(max_digits=5, decimal_places=2)
+    payment_status = serializers.CharField(max_length=20)
+
+
+class OrderCancelSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=5, decimal_places=2)
+    payment_status = serializers.CharField(max_length=20)
+    payment_url = serializers.URLField()
+    pay_until = serializers.CharField(default="You can pay only during 24 hours after borrowing!!!")
