@@ -1,12 +1,16 @@
-from rest_framework import mixins
+from decimal import *
+
+from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 
+from payments.models import Payment
 from telegram_bot.messages import borrowing_creation_notification
 
 from datetime import datetime
@@ -14,10 +18,10 @@ from .serializers import (
     BorrowingSerializer,
     BorrowingDetailSerializer,
     CreateBorrowingSerializer,
-    AdminCreateBorrowingSerializer,
+    AdminCreateBorrowingSerializer, BorrowingReturnSerializer,
 )
 from .models import Borrowing
-from payments.utils import create_new_payment
+from payments.utils import create_new_payment, create_new_fine_payment
 
 
 class BorrowingViewSet(
@@ -79,10 +83,45 @@ class BorrowingViewSet(
         if borrowing.actual_return_date is not None:
             raise ValidationError("borrowing already inactive")
 
-        borrowing.actual_return_date = datetime.now()
+        borrowing.actual_return_date = datetime.now().date()
         borrowing.save()
 
         book.inventory += 1
         book.save()
 
-        return Response({"message": "Borrowing returned successfully"})
+        # Create Fine payment
+        if borrowing.actual_return_date > borrowing.expected_return_date:
+            create_new_fine_payment(borrowing)
+
+        return redirect("borrowings:borrowing-returned-successfully", borrowing_id=borrowing.id)
+
+
+class BorrowingReturnedSuccessfully(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+
+    def get(self, request, borrowing_id):
+        borrowing = Borrowing.objects.get(id=borrowing_id)
+        fine = Payment.objects.get(borrowing=borrowing, type="FINE")
+        message = "Borrowing returned successfully!"
+
+        response_data = {
+            "message": message
+        }
+
+        if fine:
+            message = message + " You have to pay fine during 24 hours!"
+            fine_payment_link = fine.session_url
+            money_to_pay = fine.money_to_pay
+            response_data = {
+                "fine_payment_link": fine_payment_link,
+                "money_to_pay": money_to_pay,
+                "message": message
+            }
+
+        serializer = BorrowingReturnSerializer(data=response_data)
+        serializer.is_valid(raise_exception=True)
+        response_data = serializer.data
+
+        return Response(response_data, status=status.HTTP_200_OK)
+

@@ -76,3 +76,9 @@ class AdminCreateBorrowingSerializer(CreateBorrowingSerializer):
         borrowing = Borrowing.objects.create(book=book, **validated_data)
 
         return borrowing
+
+
+class BorrowingReturnSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=255)
+    fine_payment_link = serializers.URLField(allow_null=True)
+    money_to_pay = serializers.DecimalField(max_digits=8, decimal_places=2, allow_null=True)

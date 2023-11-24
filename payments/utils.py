@@ -20,7 +20,7 @@ def create_new_checkout_session(borrowing: Borrowing, price: Decimal) -> stripe.
                         "name": borrowing.book.title
                     },
                 },
-                'quantity': 1,
+                "quantity": 1,
             },
         ],
         metadata={
@@ -40,6 +40,21 @@ def create_new_payment(borrowing: Borrowing) -> Payment:
 
     session = create_new_checkout_session(borrowing, price)
     payment = Payment.objects.create(
+        borrowing=borrowing,
+        session_id=session.id,
+        session_url=session.url,
+        money_to_pay=price
+    )
+
+    return payment
+
+
+def create_new_fine_payment(borrowing: Borrowing) -> Payment:
+    days_overdue = (borrowing.actual_return_date - borrowing.expected_return_date).days
+    price = days_overdue * borrowing.book.daily_fee * 2
+    session = create_new_checkout_session(borrowing, price)
+    payment = Payment.objects.create(
+        type="FINE",
         borrowing=borrowing,
         session_id=session.id,
         session_url=session.url,
