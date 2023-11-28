@@ -21,6 +21,10 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     "my-task": {
         "task": "borrowings.tasks.borrowings_overdue",
-        "schedule": crontab(day_of_week="*"),
+        "schedule": crontab(hour=0, minute=0),
     },
+    "update_expired_payments_status": {
+        "task": "payments.tasks.update_expired_payments_status",
+        "schedule": crontab(minute="*")
+    }
 }

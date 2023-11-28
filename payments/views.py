@@ -12,6 +12,7 @@ from django.conf import settings
 
 from .serializers import PaymentSerializer, PaymentDetailSerializer, OrderSuccessSerializer, OrderCancelSerializer
 from .models import Payment
+from .utils import create_new_checkout_session
 
 
 class PaymentViewSet(
@@ -40,7 +41,7 @@ class PaymentViewSet(
         endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
         payload = request.body
 
-        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+        sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
         event = None
 
         try:
@@ -59,15 +60,32 @@ class PaymentViewSet(
 
             session_id = session["id"]
 
-            # customer_email = session["customer_details"]["email"]
-            # book_id = session["metadata"]["book_id"]
-
             payment = Payment.objects.get(session_id=session_id)
             payment.status = "PAID"
             payment.save()
 
         # Passed signature verification
         return HttpResponse(status=200)
+
+    @action(detail=True, methods=["POST"], permission_classes=[IsAuthenticated])
+    def payment_renew(self, request, *args, **kwargs):
+        payment = self.get_object()
+
+        if payment.status == "EXPIRED":
+            borrowing = payment.borrowing
+            price = payment.money_to_pay
+
+            new_checkout_session = create_new_checkout_session(borrowing, price)
+
+            payment.session_id = new_checkout_session.id
+            payment.session_url = new_checkout_session.url
+            payment.status = "PENDING"
+
+            payment.save()
+
+            return HttpResponse(status=200)
+
+        return Response({"message": "Payment is not expired"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrderSuccess(APIView):

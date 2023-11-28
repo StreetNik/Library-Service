@@ -1,6 +1,7 @@
 import stripe
 from decimal import *
 from django.conf import settings
+from datetime import datetime, timedelta
 
 from borrowings.models import Borrowing
 from .models import Payment
@@ -10,6 +11,8 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def create_new_checkout_session(borrowing: Borrowing, price: Decimal) -> stripe.checkout.Session:
+    expiration_time = datetime.utcnow() + timedelta(hours=24)
+
     checkout_session = stripe.checkout.Session.create(
         line_items=[
             {
@@ -24,7 +27,8 @@ def create_new_checkout_session(borrowing: Borrowing, price: Decimal) -> stripe.
             },
         ],
         metadata={
-            "book_id": borrowing.book.id
+            "book_id": borrowing.book.id,
+            "expiration_time": int(expiration_time.timestamp())
         },
         mode="payment",
         success_url="http://127.0.0.1:8000/api/payments/paid_successfully" + "/?session_id={CHECKOUT_SESSION_ID}",
