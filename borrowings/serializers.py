@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user
+
+from payments.models import Payment
 from .models import Borrowing
 from books.serializers import BookSerializer
 from payments.serializers import PaymentSerializer
@@ -31,7 +34,6 @@ class CreateBorrowingSerializer(serializers.ModelSerializer):
             "id",
             "borrow_date",
             "expected_return_date",
-            "actual_return_date",
             "book",
             "user",
         ]
@@ -39,8 +41,14 @@ class CreateBorrowingSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         book = attrs.get("book")
+        user = self.context["request"].user
         if book.inventory < 1:
             raise serializers.ValidationError("Book are not available!")
+
+        user_unpaid_payments = Payment.objects.filter(borrowing__user=user).exclude(status="PAID").count()
+
+        if user_unpaid_payments != 0:
+            raise serializers.ValidationError("You have to pay for all borrowings before make a new one!")
 
         return attrs
 
