@@ -10,6 +10,7 @@ from django.http import HttpResponse
 import stripe
 from django.conf import settings
 
+from telegram_bot.messages import payment_paid_notification
 from .serializers import PaymentSerializer, PaymentDetailSerializer, OrderSuccessSerializer, OrderCancelSerializer
 from .models import Payment
 from .utils import create_new_checkout_session
@@ -81,8 +82,6 @@ class PaymentViewSet(
             payment.session_url = new_checkout_session.url
             payment.status = "PENDING"
 
-            payment.save()
-
             return HttpResponse(status=200)
 
         return Response({"message": "Payment is not expired"}, status=status.HTTP_400_BAD_REQUEST)
@@ -109,6 +108,9 @@ class OrderSuccess(APIView):
         serializer = OrderSuccessSerializer(data=response_data)
         serializer.is_valid(raise_exception=True)
         response_data = serializer.data
+
+        payment = Payment.objects.get(session_id=session.id)
+        payment_paid_notification(payment)
 
         return Response(response_data, status=status.HTTP_200_OK)
 
