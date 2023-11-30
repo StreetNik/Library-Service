@@ -82,6 +82,8 @@ class PaymentViewSet(
             payment.session_url = new_checkout_session.url
             payment.status = "PENDING"
 
+            payment.save()
+
             return HttpResponse(status=200)
 
         return Response({"message": "Payment is not expired"}, status=status.HTTP_400_BAD_REQUEST)

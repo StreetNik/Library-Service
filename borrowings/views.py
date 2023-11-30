@@ -1,5 +1,3 @@
-from decimal import *
-
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.views import APIView
