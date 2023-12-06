@@ -5,6 +5,8 @@ from Library_API.permissions import IsSuperuserOrReadOnly
 from .serializers import BookSerializer
 from .models import Book
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+
 
 class BookViewSet(ModelViewSet):
     permission_classes = (IsSuperuserOrReadOnly,)
@@ -24,3 +26,21 @@ class BookViewSet(ModelViewSet):
             queryset = queryset.filter(author__icontains=author)
 
         return queryset
+
+    # Only for documentation purposes
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "title",
+                type=str,
+                description="Filter by book title (ex. ?title=bookTitle)"
+            ),
+            OpenApiParameter(
+                "author",
+                type=str,
+                description="Filter by book author (ex. ?author=authorName)"
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(self, request, *args, **kwargs)

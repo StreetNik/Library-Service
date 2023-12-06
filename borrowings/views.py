@@ -70,6 +70,7 @@ class BorrowingViewSet(
 
     @action(detail=True, methods=["POST"], url_path="return", url_name="return-borrowing")
     def return_borrowing(self, request, pk):
+        """Endpoint to handle the return of a borrowed books."""
         borrowing = get_object_or_404(Borrowing, pk=pk)
         book = borrowing.book
 
@@ -95,6 +96,11 @@ class BorrowingViewSet(
 
 
 class BorrowingReturnedSuccessfully(APIView):
+    """
+        A view to handle the successful return of a borrowed item.\n
+        Returns a success message and, if applicable, information about fines to be paid.
+    """
+
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
 

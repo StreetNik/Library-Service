@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "borrowings",
     "payments",
     "django_celery_beat",
+    "drf_spectacular"
 ]
 
 MIDDLEWARE = [
@@ -138,7 +139,22 @@ AUTHENTICATION_BACKENDS = ["users.backends.EmailBackend"]
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Library API",
+    "DESCRIPTION": "Your project description",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "defaultModelRendering": "model",
+        "defaultModelsExpandDepth": 2,
+        "defaultModelExpandDepth": 2,
+
+    }
 }
 
 SIMPLE_JWT = {

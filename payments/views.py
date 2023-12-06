@@ -39,6 +39,7 @@ class PaymentViewSet(
     # Check if Stripe session was paid
     @action(detail=False, methods=["POST"], permission_classes=[AllowAny])
     def success(self, request, *args, **kwargs):
+        """Webhook to check if payment was actually paid successfully"""
         endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
         payload = request.body
 
@@ -75,6 +76,11 @@ class PaymentViewSet(
         url_name="payment_renew"
     )
     def payment_renew(self, request, *args, **kwargs):
+        """
+            Endpoint to renew an expired payment (
+            Creating a new checkout session with the same details and update
+            session_id, session_url and status for payment).
+        """
         payment = self.get_object()
 
         if payment.status == "EXPIRED":
@@ -95,6 +101,8 @@ class PaymentViewSet(
 
 
 class OrderSuccess(APIView):
+    """Endpoint to handle successful payment information
+    (Return information about payment if it was successful)."""
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
 
@@ -123,6 +131,8 @@ class OrderSuccess(APIView):
 
 
 class OrderCancel(APIView):
+    """Endpoint to handle cancellation information for a Stripe checkout session.
+    (Return information about payment if user canceled payment)"""
     permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
 
