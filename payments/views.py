@@ -68,7 +68,12 @@ class PaymentViewSet(
         # Passed signature verification
         return HttpResponse(status=200)
 
-    @action(detail=True, methods=["POST"], permission_classes=[IsAuthenticated])
+    @action(
+        detail=True, methods=["POST"],
+        permission_classes=[IsAuthenticated],
+        url_path="payment-renew",
+        url_name="payment_renew"
+    )
     def payment_renew(self, request, *args, **kwargs):
         payment = self.get_object()
 
