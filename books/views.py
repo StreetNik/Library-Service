@@ -11,3 +11,16 @@ class BookViewSet(ModelViewSet):
     authentication_classes = (JWTAuthentication,)
     serializer_class = BookSerializer
     queryset = Book.objects.all()
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        title = self.request.query_params.get("title")
+        author = self.request.query_params.get("author")
+
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        if author:
+            queryset = queryset.filter(author__icontains=author)
+
+        return queryset
