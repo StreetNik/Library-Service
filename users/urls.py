@@ -6,7 +6,7 @@ from .views import EmailTokenObtainPairView, RegisterView, UserProfileViewSet
 
 
 urlpatterns = [
-    path("users/", RegisterView.as_view(), name="token_obtain_pair"),
+    path("users/", RegisterView.as_view(), name="user-registration"),
     path(
         "users/me/",
         UserProfileViewSet.as_view(
