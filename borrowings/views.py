@@ -1,14 +1,12 @@
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 
-from payments.models import Payment
 from telegram_bot.messages import borrowing_creation_notification
 
 from datetime import datetime
@@ -89,28 +87,16 @@ class BorrowingViewSet(
         book.save()
 
         # Create Fine payment
+        fine = None
         if borrowing.actual_return_date > borrowing.expected_return_date:
-            create_new_fine_payment(borrowing)
+            fine = create_new_fine_payment(borrowing)
 
-        return redirect("borrowings:borrowing-returned-successfully", borrowing_id=borrowing.id)
-
-
-class BorrowingReturnedSuccessfully(APIView):
-    """
-        A view to handle the successful return of a borrowed item.\n
-        Returns a success message and, if applicable, information about fines to be paid.
-    """
-
-    permission_classes = (IsAuthenticated,)
-    authentication_classes = (JWTAuthentication,)
-
-    def get(self, request, borrowing_id):
-        borrowing = Borrowing.objects.get(id=borrowing_id)
-        fine = Payment.objects.get(borrowing=borrowing, type="FINE")
         message = "Borrowing returned successfully!"
 
         response_data = {
-            "message": message
+            "message": message,
+            "fine_payment_link": None,
+            "money_to_pay": None
         }
 
         if fine:
@@ -128,4 +114,3 @@ class BorrowingReturnedSuccessfully(APIView):
         response_data = serializer.data
 
         return Response(response_data, status=status.HTTP_200_OK)
-

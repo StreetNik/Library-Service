@@ -7,6 +7,6 @@ router = routers.DefaultRouter()
 
 router.register(r"books", BookViewSet, basename="book-detail")
 
-urlpatterns = [] + router.urls
+urlpatterns = router.urls
 
 app_name = "books"
