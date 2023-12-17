@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from .models import Payment
-from datetime import datetime, timedelta
 from users.serializers import UserProfileSerializer
 from books.serializers import BookSerializer
 
