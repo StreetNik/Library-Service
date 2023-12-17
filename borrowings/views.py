@@ -3,13 +3,11 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from telegram_bot.messages import borrowing_creation_notification
 
-from datetime import datetime
 from .serializers import (
     BorrowingSerializer,
     BorrowingDetailSerializer,
@@ -70,47 +68,18 @@ class BorrowingViewSet(
     def return_borrowing(self, request, pk):
         """Endpoint to handle the return of a borrowed books."""
         borrowing = get_object_or_404(Borrowing, pk=pk)
-        book = borrowing.book
 
-        if not request.user.is_superuser and request.user != borrowing.user:
-            raise ValidationError(
-                "You do not have permission to return this borrowing."
-            )
+        serializer = BorrowingReturnSerializer(
+            instance=borrowing,
+            data={},
+            context={
+                "user": self.request.user
+            },
+            partial=True
+        )
 
-        if borrowing.actual_return_date is not None:
-            raise ValidationError("borrowing already inactive")
-
-        borrowing.actual_return_date = datetime.now().date()
-        borrowing.save()
-
-        book.inventory += 1
-        book.save()
-
-        # Create Fine payment
-        fine = None
-        if borrowing.actual_return_date > borrowing.expected_return_date:
-            fine = create_new_fine_payment(borrowing)
-
-        message = "Borrowing returned successfully!"
-
-        response_data = {
-            "message": message,
-            "fine_payment_link": None,
-            "money_to_pay": None
-        }
-
-        if fine:
-            message = message + " You have to pay fine during 24 hours!"
-            fine_payment_link = fine.session_url
-            money_to_pay = fine.money_to_pay
-            response_data = {
-                "fine_payment_link": fine_payment_link,
-                "money_to_pay": money_to_pay,
-                "message": message
-            }
-
-        serializer = BorrowingReturnSerializer(data=response_data)
         serializer.is_valid(raise_exception=True)
+        serializer.update(borrowing, {})
         response_data = serializer.data
 
         return Response(response_data, status=status.HTTP_200_OK)
